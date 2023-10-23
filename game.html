@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>끝말잇기</title>
+</head>
+<body>
+  <h1>끝말잇기 게임</h1>
+  <input type="text" id="name" placeholder="이름을 입력하세요">
+  <button onclick="registerPlayer()">등록</button>
+  <hr>
+  <input type="text" id="word" placeholder="단어를 입력하세요">
+  <button onclick="submitWord()">제출</button>
+  <div id="log"></div>
+
+  <script>
+    const log = document.getElementById('log');
+    const ws = new WebSocket('ws://localhost:8080');
+
+    ws.onmessage = function(event) {
+        const received = JSON.parse(event.data);
+        const type = received.type;
+        const data = received.data || {};  // data가 undefined일 경우 빈 객체로 설정
+      switch(type) {
+        case 'player-list':
+          log.innerHTML = '플레이어: ' + data.join(", ");
+          break;
+        case 'new-word':
+          log.innerHTML += `<br>${data.name}: ${data.word}`;
+          break;
+        case 'error':
+          alert(data ? data.message : "오류가 발생했습니다.");  // data.message가 없을 경우 기본 메시지 출력
+          break;
+      }
+    };
+
+    function registerPlayer() {
+      const name = document.getElementById('name').value;
+      ws.send(JSON.stringify({ type: 'new-player', data: { name } }));
+    }
+
+    function submitWord() {
+      const word = document.getElementById('word').value;
+      ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
+    }
+  </script>
+</body>
+</html>
