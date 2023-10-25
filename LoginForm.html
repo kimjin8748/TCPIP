@@ -71,7 +71,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                window.location.href = "game.html"; 
+                window.location.href = "http://localhost:8080/game.html"; 
             } else {
                 alert(data.error);
             }
