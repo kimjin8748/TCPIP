@@ -13,22 +13,88 @@
     const loginup = document.getElementById("login-up");
 
     signup.addEventListener("click", () => {
-        loginin.classList.remove("block");
-        loginup.classList.remove("none");
-
-        loginin.classList.add("none");
-        loginup.classList.add("block");
+        toggleForms('up');
     });
 
     signin.addEventListener("click", () => {
-        loginin.classList.remove("none");
-        loginup.classList.remove("block");
-
-        loginin.classList.add("block");
-        loginup.classList.add("none");
+        toggleForms('in');
     });
-});
 
+    // 회원가입 폼 AJAX 요청 처리
+    const registerForm = document.getElementById("login-up");
+    registerForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const data = {
+            username: registerForm.querySelector('[name="username"]').value,
+            email: registerForm.querySelector('[name="email"]').value,
+            password: registerForm.querySelector('[name="password"]').value,
+        };
+
+        fetch('/LoginForm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                toggleForms('in');
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert("오류 발생: " + error.message);
+        });
+    });
+
+    // 로그인 폼 AJAX 요청 처리
+    const loginForm = document.getElementById("login-in");
+    loginForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const data = {
+            username: loginForm.querySelector('input[type="text"]').value,
+            password: loginForm.querySelector('input[type="password"]').value
+        };
+
+        fetch('/LoginForm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "game.html"; 
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert("오류 발생: " + error.message);
+        });
+    });
+
+    function toggleForms(mode) {
+        if (mode === 'up') {
+            loginin.classList.remove("block");
+            loginup.classList.remove("none");
+            loginin.classList.add("none");
+            loginup.classList.add("block");
+        } else {
+            loginin.classList.remove("none");
+            loginup.classList.remove("block");
+            loginin.classList.add("block");
+            loginup.classList.add("none");
+        }
+    }
+});
 </script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
@@ -234,51 +300,53 @@ img {
         <img src="https://image.freepik.com/free-vector/code-typing-concept-illustration_114360-3581.jpg" alt="user login">
       </div>
       <div class="login__forms">
-<!--         login form -->
-        <form action="" class="login__register" id="login-in">
-          <h1 class="login__title">로그인</h1>
-          <div class="login__box">
-            <i class='bx bx-user login__icon'></i>
-            <input type="text" placeholder="Username" class="login__input">
-          </div>
-          <div class="login__box">
-            <i class='bx bx-lock login__icon'></i>
-            <input type="password" placeholder="Password" class="login__input">
-          </div>
-          <a href="#" class="login__forgot">Forgot Password? </a>
-          
-          <a href="game.html" class="login__button">로그인</a>
-          
-          <div>
-            <span class="login__account login__account--account">계정이 없습니까?</span>
-            <span class="login__signin login__signin--signup" id="sign-up">회원가입</span>
-          </div>
-        </form>
+<!-- login form -->
+<form action="/LoginForm" method="post" class="login__register" id="login-in">
+    <h1 class="login__title">로그인</h1>
+    <div class="login__box">
+        <i class='bx bx-user login__icon'></i>
+        <input type="text" placeholder="Username" class="login__input" name="username">
+    </div>
+    <div class="login__box">
+        <i class='bx bx-lock login__icon'></i>
+        <input type="password" placeholder="Password" class="login__input" name="password">
+    </div>
+    <a href="#" class="login__forgot">Forgot Password? </a>
+    
+    <button type="submit" class="login__button">로그인</button>
+
+    <div>
+        <span class="login__account login__account--account">계정이 없습니까?</span>
+        <span class="login__signin login__signin--signup" id="sign-up">회원가입</span>
+    </div>
+</form>
+
         
 <!--         create account form -->
-        <form action="" class="login__create none" id="login-up">
-          <h1 class="login__title">회원가입</h1>
-          <div class="login__box">
-            <i class='bx bx-user login__icon'></i>
-            <input type="text" placeholder="Username" class="login__input">
-          </div>
-          
-          <div class="login__box">
-            <i class='bx bx-at login__icon'></i>
-            <input type="text" placeholder="Email" class="login__input">
-          </div>
-          
-          <div class="login__box">
-            <i class='bx bx-lock login__icon'></i>
-            <input type="password" placeholder="Password" class="login__input">
-          </div>
-          
-          <a href="#" class="login__button">회원가입</a>
-          
-          <div>
-            <span class="login__account login__account--account">이미 계정이 있습니까?</span>
-            <span class="login__signup login__signup--signup" id="sign-in">로그인</span>
-          </div>
+<form action="/RegisterForm" method="post" class="login__create none" id="login-up">
+    <h1 class="login__title">회원가입</h1>
+
+    <div class="login__box">
+        <i class='bx bx-user login__icon'></i>
+        <input type="text" placeholder="Username" class="login__input" name="username">
+    </div>
+
+    <div class="login__box">
+        <i class='bx bx-at login__icon'></i>
+        <input type="text" placeholder="Email" class="login__input" name="email">
+    </div>
+
+    <div class="login__box">
+        <i class='bx bx-lock login__icon'></i>
+        <input type="password" placeholder="Password" class="login__input" name="password">
+    </div>
+
+    <button type="submit" class="login__button">회원가입</button>
+
+    <div>
+        <span class="login__account login__account--account">이미 계정이 있습니까?</span>
+        <span class="login__signup login__signup--signup" id="sign-in">로그인</span>
+    </div>
           
           <div class="login__social">
              <a href="https://www.facebook.com/?locale=ko_KR" class="login__social--icon"><i class='bx bxl-facebook'></i></a>

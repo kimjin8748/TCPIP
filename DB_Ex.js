@@ -1,7 +1,9 @@
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
+const http = require('http');
+const WebSocket = require('ws');
+const bcrypt = require('bcrypt');
 const session = require('express-session');
 
 const app = express();
