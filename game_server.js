@@ -35,7 +35,7 @@ app.get('/LoginForm', (req, res) => {
   res.sendFile(__dirname + '/LoginForm.html');
 });
 
-app.post('/RegisterForm', (req, res) => {
+app.post('/LoginForm', (req, res) => {
     let { username, email, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
     let sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';

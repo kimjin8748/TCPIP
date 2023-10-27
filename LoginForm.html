@@ -41,6 +41,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                alert("회원가입이 완료되었습니다!");
                 toggleForms('in');
             } else {
                 alert(data.error);
@@ -193,7 +194,8 @@ img {
     color: #a49eac;
 }
 .login__button {
-    display: block;
+    display: inline-block;
+    width: 100%;
     padding: 1rem;
     margin: 2rem 0;
     background-color: #4AD395;
@@ -323,7 +325,7 @@ img {
 
         
 <!--         create account form -->
-<form action="/RegisterForm" method="post" class="login__create none" id="login-up">
+<form action="/LoginForm" method="post" class="login__create none" id="login-up">
     <h1 class="login__title">회원가입</h1>
 
     <div class="login__box">
