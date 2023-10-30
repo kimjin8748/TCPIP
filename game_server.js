@@ -10,6 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+//DB연동을 위한 서버측 코드
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -61,6 +62,7 @@ app.post('/LoginForm', (req, res) => {
     });
 });
 
+//끝말잇기 기능의 서버측 코드
 let lastWord = "";
 let players = [];
 let usedWords = [];
