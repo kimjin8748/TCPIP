@@ -47,6 +47,8 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       background-color: #fff;
+      max-height: 200px; /* 최대 높이 지정 */
+      overflow-y: scroll; /* 세로 스크롤바 표시 */
   }
 </style>
 <body>
@@ -58,6 +60,9 @@
   <button onclick="submitWord()">제출</button>
   <div id="log"></div>
 
+  <!-- 한글 API 받아오는 스크립트-->
+  <script src="/hangul-tools.js"></script>
+  
   <script>
     const log = document.getElementById('log');
     const ws = new WebSocket('ws://localhost:8080');
@@ -72,21 +77,37 @@
           break;
         case 'new-word':
           log.innerHTML += `<br>${data.name}: ${data.word}`;
+          scrollToBottom(); // 새로운 메시지가 추가될 때 스크롤을 아래로 이동
           break;
         case 'error':
           alert(data ? data.message : "오류가 발생했습니다.");  // data.message가 없을 경우 기본 메시지 출력
           break;
       }
     };
+
+    function scrollToBottom() {
+      log.scrollTop = log.scrollHeight;
+    }
   
+    // Enter 키를 눌렀을 때 데이터 제출
+    document.getElementById('word').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            submitWord();
+        }
+    });
+    
+    //플레이어 등록하기
     function registerPlayer() {
       const name = document.getElementById('name').value;
       ws.send(JSON.stringify({ type: 'new-player', data: { name } }));
     }
-  
+    
+    //끝말잇기 단어 제출하기
     function submitWord() {
-      const word = document.getElementById('word').value;
+      const wordInput = document.getElementById('word');
+      const word = wordInput.value;
       ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
+      wordInput.value = ''; // 입력란 비우기
     }
   </script>
 </body>
