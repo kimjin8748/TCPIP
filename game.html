@@ -60,7 +60,9 @@
   <button onclick="submitWord()">제출</button>
   <div id="log"></div>
 
+  <!-- 한글 API 받아오는 스크립트-->
   <script src="/hangul-tools.js"></script>
+  
   <script>
     const log = document.getElementById('log');
     const ws = new WebSocket('ws://localhost:8080');
