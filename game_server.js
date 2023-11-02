@@ -19,7 +19,7 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if(err) throw err;
+    if (err) throw err;
     console.log('MySQL Connected...');
 });
 
@@ -33,7 +33,7 @@ app.use(session({
 }));
 
 app.get('/LoginForm', (req, res) => {
-  res.sendFile(__dirname + '/LoginForm.html');
+    res.sendFile(__dirname + '/LoginForm.html');
 });
 
 app.post('/LoginForm', (req, res) => {
@@ -70,7 +70,7 @@ let usedWords = [];
 wss.on('connection', ws => {
     ws.on('message', message => {
         const { type, data } = JSON.parse(message);
-        switch(type) {
+        switch (type) {
             case 'new-player':
                 players.push({ ws, name: data.name });
                 broadcast('player-list', players.map(p => p.name));
@@ -81,17 +81,17 @@ wss.on('connection', ws => {
                     return;
                 }
 
-                if (lastWord === "" || data.word[0] === lastWord[lastWord.length-1]) {
+                if (lastWord === "" || data.word[0] === lastWord[lastWord.length - 1]) {
                     lastWord = data.word;
                     usedWords.push(lastWord);
                     broadcast('new-word', { name: data.name, word: data.word });
                 } else {
-                    ws.send(JSON.stringify({ type: 'error', data: {message: '틀린 단어입니다!'} }));
+                    ws.send(JSON.stringify({ type: 'error', data: { message: '틀린 단어입니다!' } }));
                 }
                 break;
         }
     });
-  
+
     ws.on('close', () => {
         players = players.filter(player => player.ws !== ws);
         broadcast('player-list', players.map(p => p.name));
@@ -107,3 +107,4 @@ function broadcast(type, data) {
 server.listen(8080, () => {
     console.log("Server is listening on port 8080");
 });
+
