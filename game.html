@@ -1,77 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>끝말잇기</title>
 </head>
 <style>
   body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f4f4f4;
-      padding: 30px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 30px;
   }
 
   h1 {
-      color: #333;
-      text-align: center;
-      margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
   }
 
-  input[type="text"], button {
-      padding: 10px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
+  input[type="text"],
+  button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
   }
 
   input[type="text"] {
-      width: 250px;
-      outline: none;
+    width: 250px;
+    outline: none;
   }
 
   button {
-      background-color: #007BFF;
-      color: #fff;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
+    background-color: #007BFF;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
   }
 
   button:hover {
-      background-color: #0056b3;
+    background-color: #0056b3;
   }
 
   #log {
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background-color: #fff;
-      max-height: 200px; /* 최대 높이 지정 */
-      overflow-y: scroll; /* 세로 스크롤바 표시 */
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    max-height: 200px;
+    /* 최대 높이 지정 */
+    overflow-y: scroll;
+    /* 세로 스크롤바 표시 */
   }
 </style>
+
 <body>
   <h1>끝말잇기 게임</h1>
   <input type="text" id="name" placeholder="이름을 입력하세요">
   <button onclick="registerPlayer()">등록</button>
   <hr>
   <input type="text" id="word" placeholder="단어를 입력하세요">
+  <button onclick="getRandomKoreanWord()">랜덤 단어 가져오기</button>
   <button onclick="submitWord()">제출</button>
   <div id="log"></div>
 
   <!-- 한글 API 받아오는 스크립트-->
   <script src="/hangul-tools.js"></script>
-  
+
   <script>
     const log = document.getElementById('log');
     const ws = new WebSocket('ws://localhost:8080');
-  
-    ws.onmessage = function(event) {
-        const received = JSON.parse(event.data);
-        const type = received.type;
-        const data = received.data || {};  // data가 undefined일 경우 빈 객체로 설정
-      switch(type) {
+
+    ws.onmessage = function (event) {
+      const received = JSON.parse(event.data);
+      const type = received.type;
+      const data = received.data || {};  // data가 undefined일 경우 빈 객체로 설정
+      switch (type) {
         case 'player-list':
           log.innerHTML = '플레이어: ' + data.join(", ");
           break;
@@ -88,20 +94,20 @@
     function scrollToBottom() {
       log.scrollTop = log.scrollHeight;
     }
-  
+
     // Enter 키를 눌렀을 때 데이터 제출
-    document.getElementById('word').addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-            submitWord();
-        }
+    document.getElementById('word').addEventListener('keyup', function (event) {
+      if (event.key === 'Enter') {
+        submitWord();
+      }
     });
-    
+
     //플레이어 등록하기
     function registerPlayer() {
       const name = document.getElementById('name').value;
       ws.send(JSON.stringify({ type: 'new-player', data: { name } }));
     }
-    
+
     //끝말잇기 단어 제출하기
     function submitWord() {
       const wordInput = document.getElementById('word');
@@ -109,6 +115,67 @@
       ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
       wordInput.value = ''; // 입력란 비우기
     }
+
+    //우리말 샘 API 받아오기
+    function xmlToJson(xml) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xml, "text/xml");
+      const json = {};
+
+      function parseNode(node) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const obj = {};
+          if (node.hasAttributes()) {
+            for (let i = 0; i < node.attributes.length; i++) {
+              const attribute = node.attributes[i];
+              obj[attribute.name] = attribute.value;
+            }
+          }
+
+          if (node.hasChildNodes()) {
+            for (let i = 0; i < node.childNodes.length; i++) {
+              const child = node.childNodes[i];
+              if (child.nodeType === Node.ELEMENT_NODE) {
+                if (obj[child.nodeName]) {
+                  if (Array.isArray(obj[child.nodeName])) {
+                    obj[child.nodeName].push(parseNode(child));
+                  } else {
+                    obj[child.nodeName] = [obj[child.nodeName], parseNode(child)];
+                  }
+                } else {
+                  obj[child.nodeName] = parseNode(child);
+                }
+              } else if (child.nodeType === Node.TEXT_NODE && child.nodeValue.trim()) {
+                obj['text'] = child.nodeValue.trim();
+              }
+            }
+          }
+          return obj;
+        }
+      }
+
+      return parseNode(xmlDoc);
+    }
+
+    // 랜덤 단어 가져오기
+    function getRandomKoreanWord() {
+      fetch('https://opendict.korean.go.kr/api/search?key=288C83969D46504EDC3039AB808AE8C8&q=&sort=popular')
+        .then((response) => response.text()) // 응답을 텍스트로 변환
+        .then((xml) => {
+          const jsonData = xmlToJson(xml);
+          const words = jsonData.response.body.items.item || []; // 실제 데이터를 찾아서 추출
+          if (words.length > 0) {
+            const randomWord = words[Math.floor(Math.random() * words.length)].word;
+            document.getElementById('word').value = randomWord;
+          } else {
+            alert('API에서 단어를 가져오는 데 문제가 발생했습니다.');
+          }
+        })
+        .catch((error) => {
+          console.error('API 호출 중 오류 발생: ', error);
+        });
+    }
   </script>
 </body>
+
 </html>
