@@ -62,31 +62,38 @@
   <button onclick="registerPlayer()">등록</button>
   <hr>
   <input type="text" id="word" placeholder="단어를 입력하세요">
-  <button onclick="getRandomKoreanWord()">랜덤 단어 가져오기</button>
   <button onclick="submitWord()">제출</button>
   <div id="log"></div>
-
-  <!-- 한글 API 받아오는 스크립트-->
-  <script src="/hangul-tools.js"></script>
+  <p id="timer" style="display: none;">남은 시간: <span id="countdown">30</span>초</p>
 
   <script>
     const log = document.getElementById('log');
     const ws = new WebSocket('ws://localhost:8080');
+    let timerInterval;
+    let usersRegistered = 0;
+    let timer;
 
     ws.onmessage = function (event) {
       const received = JSON.parse(event.data);
       const type = received.type;
-      const data = received.data || {};  // data가 undefined일 경우 빈 객체로 설정
+      const data = received.data || {};
+
       switch (type) {
         case 'player-list':
           log.innerHTML = '플레이어: ' + data.join(", ");
+          if (data.length >= 2 && usersRegistered < 2) {
+            // 두 명의 사용자가 등록되면 타이머 시작
+            startTimer();
+            usersRegistered = 2;
+          }
           break;
         case 'new-word':
           log.innerHTML += `<br>${data.name}: ${data.word}`;
-          scrollToBottom(); // 새로운 메시지가 추가될 때 스크롤을 아래로 이동
+          scrollToBottom();
+          resetTimer();
           break;
         case 'error':
-          alert(data ? data.message : "오류가 발생했습니다.");  // data.message가 없을 경우 기본 메시지 출력
+          alert(data ? data.message : "오류가 발생했습니다.");
           break;
       }
     };
@@ -102,13 +109,13 @@
       }
     });
 
-    //플레이어 등록하기
+    // 플레이어 등록하기
     function registerPlayer() {
       const name = document.getElementById('name').value;
       ws.send(JSON.stringify({ type: 'new-player', data: { name } }));
     }
 
-    //끝말잇기 단어 제출하기
+    // 끝말잇기 단어 제출하기
     function submitWord() {
       const wordInput = document.getElementById('word');
       const word = wordInput.value;
@@ -116,64 +123,29 @@
       wordInput.value = ''; // 입력란 비우기
     }
 
-    //우리말 샘 API 받아오기
-    function xmlToJson(xml) {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xml, "text/xml");
-      const json = {};
-
-      function parseNode(node) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-          const obj = {};
-          if (node.hasAttributes()) {
-            for (let i = 0; i < node.attributes.length; i++) {
-              const attribute = node.attributes[i];
-              obj[attribute.name] = attribute.value;
-            }
-          }
-
-          if (node.hasChildNodes()) {
-            for (let i = 0; i < node.childNodes.length; i++) {
-              const child = node.childNodes[i];
-              if (child.nodeType === Node.ELEMENT_NODE) {
-                if (obj[child.nodeName]) {
-                  if (Array.isArray(obj[child.nodeName])) {
-                    obj[child.nodeName].push(parseNode(child));
-                  } else {
-                    obj[child.nodeName] = [obj[child.nodeName], parseNode(child)];
-                  }
-                } else {
-                  obj[child.nodeName] = parseNode(child);
-                }
-              } else if (child.nodeType === Node.TEXT_NODE && child.nodeValue.trim()) {
-                obj['text'] = child.nodeValue.trim();
-              }
-            }
-          }
-          return obj;
+    // 타이머 시작 함수
+    function startTimer() {
+      timer = 10;
+      document.getElementById("timer").style.display = "block"; // 타이머 표시
+      document.getElementById('countdown').textContent = timer;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(function () {
+        if (timer === 0) {
+          clearInterval(timerInterval);
+          document.getElementById("timer").textContent = "게임 종료";
+          document.getElementById("word").disabled = true;
+          document.getElementById("submitWord").disabled = true;
+        } else {
+          timer--;
+          document.getElementById('countdown').textContent = timer;
         }
-      }
-
-      return parseNode(xmlDoc);
+      }, 1000);
     }
 
-    // 랜덤 단어 가져오기
-    function getRandomKoreanWord() {
-      fetch('https://opendict.korean.go.kr/api/search?key=288C83969D46504EDC3039AB808AE8C8&q=&sort=popular')
-        .then((response) => response.text()) // 응답을 텍스트로 변환
-        .then((xml) => {
-          const jsonData = xmlToJson(xml);
-          const words = jsonData.response.body.items.item || []; // 실제 데이터를 찾아서 추출
-          if (words.length > 0) {
-            const randomWord = words[Math.floor(Math.random() * words.length)].word;
-            document.getElementById('word').value = randomWord;
-          } else {
-            alert('API에서 단어를 가져오는 데 문제가 발생했습니다.');
-          }
-        })
-        .catch((error) => {
-          console.error('API 호출 중 오류 발생: ', error);
-        });
+    // 타이머 재설정 함수
+    function resetTimer() {
+      clearInterval(timerInterval);
+      startTimer();
     }
   </script>
 </body>
