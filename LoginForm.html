@@ -31,7 +31,7 @@
             password: registerForm.querySelector('[name="password"]').value,
         };
 
-        fetch('/LoginForm', {
+        fetch('/SignUpForm', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -302,7 +302,7 @@ img {
         <img src="https://image.freepik.com/free-vector/code-typing-concept-illustration_114360-3581.jpg" alt="user login">
       </div>
       <div class="login__forms">
-<!-- login form -->
+<!-- 로그인 폼 -->
 <form action="/LoginForm" method="post" class="login__register" id="login-in">
     <h1 class="login__title">로그인</h1>
     <div class="login__box">
@@ -324,8 +324,8 @@ img {
 </form>
 
         
-<!--         create account form -->
-<form action="/LoginForm" method="post" class="login__create none" id="login-up">
+<!-- 회원가입 폼 -->
+<form action="/SignUpForm" method="post" class="login__create none" id="login-up">
     <h1 class="login__title">회원가입</h1>
 
     <div class="login__box">

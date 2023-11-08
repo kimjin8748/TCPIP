@@ -37,19 +37,6 @@ app.get('/LoginForm', (req, res) => {
 });
 
 app.post('/LoginForm', (req, res) => {
-    let { username, email, password } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    let sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-    db.query(sql, [username, email, hashedPassword], (err) => {
-        if (err) {
-            res.json({ success: false, error: '회원가입 중 문제가 발생했습니다.' });
-            return;
-        }
-        res.json({ success: true });
-    });
-});
-
-app.post('/LoginForm', (req, res) => {
     const { username, password } = req.body;
     db.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
         if (err) throw err;
@@ -59,6 +46,23 @@ app.post('/LoginForm', (req, res) => {
         } else {
             res.json({ success: false, error: 'ID나 비밀번호를 확인하세요!' });
         }
+    });
+});
+
+app.get('/SignUpForm', (req, res) => {
+    res.sendFile(__dirname + '/LoginForm.html');
+});
+
+app.post('/SignUpForm', (req, res) => {
+    let { username, email, password } = req.body;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    let sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+    db.query(sql, [username, email, hashedPassword], (err) => {
+        if (err) {
+            res.json({ success: false, error: '회원가입 중 문제가 발생했습니다.' });
+            return;
+        }
+        res.json({ success: true });
     });
 });
 
