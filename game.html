@@ -6,7 +6,7 @@
   <title>끝말잇기</title>
 </head>
 <style>
-  body {
+  body {    
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
     padding: 30px;
@@ -54,15 +54,31 @@
     overflow-y: scroll;
     /* 세로 스크롤바 표시 */
   }
+
+  .header-container {
+    justify-content: center;
+    display: flex; /* 요소들을 가로로 나란히 배치 */
+    align-items: center; /* 수직 가운데 정렬 */
+  }
+  
+  .game-logo {
+    width: 90px; /* 이미지의 폭 설정 */
+    margin-right: 10px; /* 글자와 이미지 사이 간격 설정 */
+  }
 </style>
 
 <body>
-  <h1>끝말잇기 게임</h1>
-  <input type="text" id="name" placeholder="이름을 입력하세요">
+  <div class="header-container">
+    <h1>끝말잇기 게임</h1>
+    <img src="세세.png" alt="게임 이미지" class="game-logo">
+  </div>
+  <input type="text" id="name" placeholder="닉네임을 입력하세요">
   <button onclick="registerPlayer()">등록</button>
+  🐷게임을 시작하려면 닉네임을 등록하세요.
   <hr>
   <input type="text" id="word" placeholder="단어를 입력하세요">
   <button onclick="submitWord()">제출</button>
+  🐷상대방이 연결되면 게임을 시작하세요.
   <div id="log"></div>
   <p id="timer" style="display: none;">남은 시간: <span id="countdown">30</span>초</p>
 
@@ -119,22 +135,55 @@
     function submitWord() {
       const wordInput = document.getElementById('word');
       const word = wordInput.value;
-      ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
-      wordInput.value = ''; // 입력란 비우기
+
+      // 단어 검증을 위한 우리말 샘 API 호출
+      fetchWordValidation(word)
+        .then(valid => {
+          if (valid) {
+            // 유효한 단어일 경우에만 제출
+            ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
+            wordInput.value = ''; // 입력란 비우기
+          } else {
+            alert("유효한 한국어 단어가 아닙니다. 다시 시도하세요.");
+          }
+        });
+    }
+
+    // 우리말 샘 API를 사용하여 단어의 유효성을 확인하는 함수
+    function fetchWordValidation(word) {
+      const apiKey = '288C83969D46504EDC3039AB808AE8C8'; // 우리말 샘 API 키
+      const apiUrl = `https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${word}&output=xml`;
+
+      return fetch(apiUrl)
+        .then(response => response.text())
+        .then(data => {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(data, "text/xml");
+          const total = xmlDoc.getElementsByTagName("total")[0].textContent;
+
+          // "total" 값이 0보다 크면 유효한 단어로 판단
+          return parseInt(total) > 0;
+        })
+        .catch(error => {
+          console.error("API 요청 중 오류 발생: " + error);
+          return false; // 오류 발생 시 유효하지 않은 단어로 처리
+        });
     }
 
     // 타이머 시작 함수
     function startTimer() {
-      timer = 10;
+      timer = 15;
       document.getElementById("timer").style.display = "block"; // 타이머 표시
       document.getElementById('countdown').textContent = timer;
       clearInterval(timerInterval);
       timerInterval = setInterval(function () {
         if (timer === 0) {
           clearInterval(timerInterval);
-          document.getElementById("timer").textContent = "게임 종료";
+          document.getElementById("timer").textContent = "게임 종료";          
           document.getElementById("word").disabled = true;
           document.getElementById("submitWord").disabled = true;
+          const userName = document.getElementById('name').value;
+          alert(userName + '님이 패배하였습니다...');
         } else {
           timer--;
           document.getElementById('countdown').textContent = timer;
@@ -149,5 +198,7 @@
     }
   </script>
 </body>
+
+</html>
 
 </html>
