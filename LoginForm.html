@@ -104,6 +104,9 @@ body, *, ::before, ::after {
     box-sizing: border-box;
 }
 body {
+    background-image: url('로그인_배경화면.png'); /* 배경 이미지 파일의 경로를 지정하세요 */
+    background-size: cover; /* 배경 이미지를 화면에 꽉 채우도록 조절합니다 */
+    background-repeat: no-repeat; /* 배경 이미지를 반복하지 않도록 설정합니다 */
     margin: 0;
     padding: 0;
     font-family: "Open Sans", sans-serif;
@@ -154,6 +157,18 @@ img {
     animation-duration: .4s;
     animation-name: animateLogin;
 }
+.login_custom_text {
+    font-size: 30px;
+    color: aquamarine;
+    font-weight: bold;
+    font-family: "Open Sans", sans-serif;
+    position: absolute;
+    top: 350px;
+    left: 350px;
+    }
+.login_custom_text span{
+    color: black;    
+    }
 .login__title {
     font-size: 1.5rem;
     margin-bottom: 2rem;
@@ -299,8 +314,9 @@ img {
   <div class="login">
     <div class="login__content">
       <div class="login__img">
-        <img src="https://image.freepik.com/free-vector/code-typing-concept-illustration_114360-3581.jpg" alt="user login">
+        <img src="배경.png" alt="user login">
       </div>
+      <p class="login_custom_text"><span>바른 한글, 끝말잇기로 배우기</span><br>:세세</p>
       <div class="login__forms">
 <!-- 로그인 폼 -->
 <form action="/LoginForm" method="post" class="login__register" id="login-in">
