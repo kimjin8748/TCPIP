@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리말샘 API 예제</title>
+</head>
+
+<body>
+    <h1>우리말샘 API 예제</h1>
+
+    <label for="searchWord">단어 검색:</label>
+    <input type="text" id="searchWord">
+    <button onclick="searchWord()">검색</button>
+
+    <div id="result"></div>
+
+    <script>
+        function searchWord() {
+            var apiKey = '288C83969D46504EDC3039AB808AE8C8';
+            var searchWord = document.getElementById('searchWord').value;
+
+            // API 호출 시 output=json 파라미터 추가
+            fetch(`https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${searchWord}&output=json`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API 호출 중 에러 발생');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 결과를 처리하고 출력
+                    var resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `<p><strong>단어:</strong> ${searchWord}</p>`;
+
+                    var wordInfoList = data["returnWordInfo"]["wordInfoList"];
+
+                    // 뜻이 있는 경우 출력
+                    if (wordInfoList && wordInfoList.length > 0) {
+                        var definitions = wordInfoList.map(wordInfo => wordInfo["definition"]).join('<br>');
+                        resultDiv.innerHTML += `<p><strong>뜻:</strong> ${definitions}</p>`;
+                    } else {
+                        resultDiv.innerHTML += `<p><strong>뜻:</strong> 뜻을 찾을 수 없습니다.</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('API 호출 중 에러:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>

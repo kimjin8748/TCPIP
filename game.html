@@ -65,6 +65,11 @@
     width: 90px; /* 이미지의 폭 설정 */
     margin-right: 10px; /* 글자와 이미지 사이 간격 설정 */
   }
+
+  #wordDefinition {
+    margin-top: 10px;
+    font-weight: bold;
+  }
 </style>
 
 <body>
@@ -81,6 +86,7 @@
   🐷상대방이 연결되면 게임을 시작하세요.
   <div id="log"></div>
   <p id="timer" style="display: none;">남은 시간: <span id="countdown">30</span>초</p>
+  <div id="wordDefinition"></div>
 
   <script>
     const log = document.getElementById('log');
@@ -135,7 +141,7 @@
     function submitWord() {
       const wordInput = document.getElementById('word');
       const word = wordInput.value;
-
+      
       // 단어 검증을 위한 우리말 샘 API 호출
       fetchWordValidation(word)
         .then(valid => {
@@ -143,6 +149,12 @@
             // 유효한 단어일 경우에만 제출
             ws.send(JSON.stringify({ type: 'submit-word', data: { name: document.getElementById('name').value, word } }));
             wordInput.value = ''; // 입력란 비우기
+
+            // 단어의 뜻을 가져와서 화면에 출력
+            fetchWordMeaning(word)
+              .then(meaning => {
+                document.getElementById('wordDefinition').innerHTML = `<p>뜻: ${meaning}</p>`;
+              });
           } else {
             alert("유효한 한국어 단어가 아닙니다. 다시 시도하세요.");
           }
@@ -167,6 +179,27 @@
         .catch(error => {
           console.error("API 요청 중 오류 발생: " + error);
           return false; // 오류 발생 시 유효하지 않은 단어로 처리
+        });
+    }
+
+    // 단어의 뜻을 가져오는 함수
+    function fetchWordMeaning(word) {
+      const apiKey = '288C83969D46504EDC3039AB808AE8C8'; // 우리말샘 API 키
+      const apiUrl = `https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${word}&output=json`;
+
+      return fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          const wordInfoList = data["returnWordInfo"]["wordInfoList"];
+          if (wordInfoList && wordInfoList.length > 0) {
+            return wordInfoList[0]["definition"];
+          } else {
+            return "뜻을 찾을 수 없습니다.";
+          }
+        })
+        .catch(error => {
+          console.error("API 요청 중 오류 발생: " + error);
+          return "뜻을 찾을 수 없습니다.";
         });
     }
 
