@@ -184,24 +184,38 @@
 
     // 단어의 뜻을 가져오는 함수
     function fetchWordMeaning(word) {
-      const apiKey = '288C83969D46504EDC3039AB808AE8C8'; // 우리말샘 API 키
-      const apiUrl = `https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${word}&output=json`;
+  const apiKey = '288C83969D46504EDC3039AB808AE8C8';
+  const apiUrl = `https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${word}&output=xml`;
 
-      return fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-          const wordInfoList = data["returnWordInfo"]["wordInfoList"];
-          if (wordInfoList && wordInfoList.length > 0) {
-            return wordInfoList[0]["definition"];
-          } else {
-            return "뜻을 찾을 수 없습니다.";
-          }
-        })
-        .catch(error => {
-          console.error("API 요청 중 오류 발생: " + error);
-          return "뜻을 찾을 수 없습니다.";
-        });
-    }
+  return fetch(apiUrl)
+    .then(response => response.text())
+    .then(data => {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(data, "text/xml");
+
+      const wordInfoList = xmlDoc.getElementsByTagName("wordInfo");
+      if (wordInfoList && wordInfoList.length > 0) {
+        let meanings = [];
+        for (let i = 0; i < wordInfoList.length; i++) {
+          const word = wordInfoList[i].getElementsByTagName("word")[0].textContent;
+          const definition = wordInfoList[i].getElementsByTagName("definition")[0].textContent;
+          meanings.push({ word, definition });
+        }
+
+        return meanings;
+      } else {
+        return "뜻을 찾을 수 없습니다.";
+      }
+    })
+    .catch(error => {
+      console.error("API 요청 중 오류 발생:", error);
+      return "뜻을 찾을 수 없습니다.";
+    });
+}
+
+
+
+
 
     // 타이머 시작 함수
     function startTimer() {
