@@ -1,44 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>한국어 단어 검색</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리말샘 검색</title>
 </head>
 <body>
-    <h1>한국어 단어 검색</h1>
-    <input type="text" id="wordInput" placeholder="검색할 단어를 입력하세요">
+    <h1>우리말샘 단어 검색</h1>
+    <label for="word">검색할 단어:</label>
+    <input type="text" id="word" name="word">
     <button onclick="searchWord()">검색</button>
     <div id="result"></div>
 
     <script>
-        // 우리말 샘 API 키
-        const apiKey = '288C83969D46504EDC3039AB808AE8C8';
-        
         function searchWord() {
-            const wordInput = document.getElementById('wordInput');
-            const word = wordInput.value;
+    var apiKey = '288C83969D46504EDC3039AB808AE8C8';
+    var word = document.getElementById('word').value;
 
-            if (word.length === 0) {
-                alert("검색할 단어를 입력하세요.");
-                return;
-            }
+    var apiUrl = 'https://opendict.korean.go.kr/api/search?' +
+                 'key=' + apiKey +
+                 '&q=' + encodeURIComponent(word);
 
-            // API 요청을 보낼 URL 생성
-            const apiUrl = `https://opendict.korean.go.kr/api/search?key=${apiKey}&q=${word}&output=xml`;
+    // API 호출
+    fetch(apiUrl)
+        .then(response => response.text())
+        .then(data => {
+            // XML 파싱
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(data, 'text/xml');
 
-            // API 요청
-            fetch(apiUrl)
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(data, "text/xml");
-                    const item = xmlDoc.getElementsByTagName("item")[0];
-                    const result = item.getElementsByTagName("word")[0].textContent;
-                    document.getElementById('result').innerText = "검색 결과: " + result;
-                })
-                .catch(error => {
-                    console.error("API 요청 중 오류 발생: " + error);
-                });
-        }
+            // 'definition' 필드에서 뜻 추출
+            var meaning = xmlDoc.getElementsByTagName('definition')[0].textContent;
+
+            // 결과를 처리하여 웹페이지에 표시
+            var resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p><b>뜻:</b> ' + meaning + '</p>';
+        })
+        .catch(error => {
+            console.error('API 호출 중 오류 발생:', error);
+            var resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>뜻을 가져오는 중 오류가 발생했습니다.</p>';
+        });
+}
+
     </script>
 </body>
 </html>
