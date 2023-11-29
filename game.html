@@ -137,6 +137,9 @@
       ws.send(JSON.stringify({ type: 'new-player', data: { name } }));
     }
 
+// 누적된 뜻을 저장할 전역 변수 추가
+let accumulatedMeaning = '';
+
 // 끝말잇기 단어 제출하기
 function submitWord() {
   const wordInput = document.getElementById('word');
@@ -198,11 +201,14 @@ function fetchWordMeaning(word) {
       // 'definition' 엘리먼트 중 첫 번째 요소에서 뜻 추출
       if (definitionElements.length > 0) {
         meaningText = definitionElements[0].textContent;
-      }
 
-      // 결과를 처리하여 웹페이지에 표시
-      var wordResult = document.getElementById('wordDefinition');
-      wordResult.innerHTML = '<p><b>뜻:</b> ' + meaningText + '</p>';
+        // 누적된 뜻 업데이트
+        accumulatedMeaning += `<p><b>${word}:</b> ${meaningText}</p>`;
+        
+        // 결과를 처리하여 웹페이지에 표시
+        var wordResult = document.getElementById('wordDefinition');
+        wordResult.innerHTML = accumulatedMeaning;
+      }
     })
     .catch(error => {
       console.error('API 호출 중 오류 발생:', error);
