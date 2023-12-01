@@ -55,16 +55,32 @@ app.get('/SignUpForm', (req, res) => {
 
 app.post('/SignUpForm', (req, res) => {
     let { username, email, password } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    let sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-    db.query(sql, [username, email, hashedPassword], (err) => {
+    
+    // 데이터베이스에서 해당 사용자 이름이 이미 존재하는지 확인
+    db.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
         if (err) {
             res.json({ success: false, error: '회원가입 중 문제가 발생했습니다.' });
             return;
         }
-        res.json({ success: true });
+
+        if (results.length > 0) {
+            // 이미 존재하는 사용자 이름일 경우 에러 응답을 보냄
+            res.json({ success: false, error: '이미 존재하는 사용자 이름입니다.' });
+        } else {
+            // 사용자 이름이 존재하지 않으면 회원가입 진행
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            let sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+            db.query(sql, [username, email, hashedPassword], (err) => {
+                if (err) {
+                    res.json({ success: false, error: '회원가입 중 문제가 발생했습니다.' });
+                    return;
+                }
+                res.json({ success: true });
+            });
+        }
     });
 });
+
 
 //끝말잇기 기능의 서버측 코드
 let lastWord = "";
@@ -90,7 +106,7 @@ wss.on('connection', ws => {
                     usedWords.push(lastWord);
                     broadcast('new-word', { name: data.name, word: data.word });
                 } else {
-                    ws.send(JSON.stringify({ type: 'error', data: { message: '틀린 단어입니다!' } }));
+                    ws.send(JSON.stringify({ type: 'error', data: { message: '끝말이 다릅니다!' } }));
                 }
                 break;
         }
